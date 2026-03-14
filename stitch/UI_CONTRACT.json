@@ -1,0 +1,15 @@
+[
+  {
+    "screenId": "a4bde43928594c20aa2cf74b52d83059",
+    "screenTitle": "Retro DVD Screensaver Interface",
+    "deviceType": "DESKTOP",
+    "elements": [],
+    "navigation": [],
+    "buttons": [],
+    "inputs": [],
+    "hardcodedData": [],
+    "totalInteractive": 0,
+    "requiresRouter": false,
+    "requiresDragDrop": false
+  }
+]

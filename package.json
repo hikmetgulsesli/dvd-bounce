@@ -1,0 +1,25 @@
+{
+  "name": "dvd-bounce",
+  "version": "1.0.0",
+  "description": "Canvas DVD Bounce screensaver",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src/**/*.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hikmetgulsesli/dvd-bounce.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hikmetgulsesli/dvd-bounce/issues"
+  },
+  "homepage": "https://github.com/hikmetgulsesli/dvd-bounce#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.3"
+  }
+}
