@@ -88,10 +88,10 @@ export function draw() {
   ctx.font = 'bold 80px "Space Grotesk", sans-serif';
 
   // Glow effect
-  ctx.shadowColor = currentColor;
+  ctx.shadowColor = getCurrentColor();
   ctx.shadowBlur = 25;
-  ctx.fillStyle = currentColor;
-  ctx.fillText('DVD', x, y + getTextHeight());
+  ctx.fillStyle = getCurrentColor();
+  ctx.fillText('DVD', state.x, state.y + getTextHeight());
 
   // Reset shadow
   ctx.shadowBlur = 0;
