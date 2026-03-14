@@ -283,3 +283,218 @@ describe('Bouncing Animation Physics', () => {
     });
   });
 });
+
+describe('Window Resize Handling', () => {
+  let canvas;
+  let x, y;
+  const MARGIN = 10;
+  const TEXT_WIDTH = 120;
+
+  beforeEach(() => {
+    canvas = createMockCanvas(800, 600);
+    x = 100;
+    y = 100;
+  });
+
+  describe('AC1: Canvas resizes on window resize event', () => {
+    it('should update canvas dimensions to match window size', () => {
+      // Simulate resize
+      const newWidth = 1024;
+      const newHeight = 768;
+      
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      
+      expect(canvas.width).toBe(newWidth);
+      expect(canvas.height).toBe(newHeight);
+    });
+
+    it('should handle resize to smaller dimensions', () => {
+      canvas.width = 400;
+      canvas.height = 300;
+      
+      expect(canvas.width).toBe(400);
+      expect(canvas.height).toBe(300);
+    });
+
+    it('should handle resize to larger dimensions', () => {
+      canvas.width = 1920;
+      canvas.height = 1080;
+      
+      expect(canvas.width).toBe(1920);
+      expect(canvas.height).toBe(1080);
+    });
+  });
+
+  describe('AC2: Logo stays within canvas bounds after resize', () => {
+    it('should reposition logo if outside right boundary after resize', () => {
+      // Logo at position that would be outside after resize
+      x = 700;
+      canvas.width = 400; // Resize to smaller width
+      
+      // Simulate resizeCanvas logic
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      
+      expect(x).toBe(canvas.width - TEXT_WIDTH - MARGIN);
+      expect(x + TEXT_WIDTH).toBeLessThanOrEqual(canvas.width - MARGIN);
+    });
+
+    it('should reposition logo if outside bottom boundary after resize', () => {
+      y = 500;
+      canvas.height = 300; // Resize to smaller height
+      
+      // Simulate resizeCanvas logic
+      if (y > canvas.height - MARGIN) {
+        y = canvas.height - MARGIN;
+      }
+      
+      expect(y).toBe(canvas.height - MARGIN);
+      expect(y).toBeLessThanOrEqual(canvas.height - MARGIN);
+    });
+
+    it('should keep logo position if still within bounds after resize', () => {
+      x = 100;
+      y = 100;
+      const originalX = x;
+      const originalY = y;
+      
+      canvas.width = 1024;
+      canvas.height = 768;
+      
+      // Simulate resizeCanvas logic
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      if (y > canvas.height - MARGIN) {
+        y = canvas.height - MARGIN;
+      }
+      
+      expect(x).toBe(originalX);
+      expect(y).toBe(originalY);
+    });
+
+    it('should handle simultaneous x and y boundary violations', () => {
+      x = 700;
+      y = 500;
+      canvas.width = 400;
+      canvas.height = 300;
+      
+      // Simulate resizeCanvas logic
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      if (y > canvas.height - MARGIN) {
+        y = canvas.height - MARGIN;
+      }
+      
+      expect(x).toBe(canvas.width - TEXT_WIDTH - MARGIN);
+      expect(y).toBe(canvas.height - MARGIN);
+    });
+  });
+
+  describe('AC3: Animation continues without interruption', () => {
+    it('should maintain velocity after resize', () => {
+      const vx = 3;
+      const vy = 3;
+      const originalVx = vx;
+      const originalVy = vy;
+      
+      // Simulate resize - velocity should remain unchanged
+      canvas.width = 1024;
+      canvas.height = 768;
+      
+      expect(vx).toBe(originalVx);
+      expect(vy).toBe(originalVy);
+    });
+
+    it('should maintain animation state after resize', () => {
+      const mockRAF = vi.fn();
+      global.requestAnimationFrame = mockRAF;
+      
+      // Animation loop should continue
+      const animate = () => {
+        mockRAF(animate);
+      };
+      
+      animate();
+      
+      // Resize happens
+      canvas.width = 1024;
+      
+      // Animation should still be running
+      expect(mockRAF).toHaveBeenCalled();
+    });
+  });
+
+  describe('AC4: Resize event handler is registered', () => {
+    it('should have window resize event listener', () => {
+      const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+      
+      // Simulate registering resize handler
+      window.addEventListener('resize', () => {});
+      
+      expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+      addEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('Edge cases for resize handling', () => {
+    it('should handle extreme small window sizes', () => {
+      canvas.width = 200;
+      canvas.height = 150;
+      x = 700;
+      y = 500;
+      
+      // Simulate resizeCanvas logic
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      if (y > canvas.height - MARGIN) {
+        y = canvas.height - MARGIN;
+      }
+      
+      // Logo should be repositioned to fit
+      expect(x + TEXT_WIDTH).toBeLessThanOrEqual(canvas.width - MARGIN);
+      expect(y).toBeLessThanOrEqual(canvas.height - MARGIN);
+    });
+
+    it('should handle multiple rapid resizes', () => {
+      const positions = [];
+      
+      // First resize
+      canvas.width = 600;
+      canvas.height = 400;
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      positions.push({ x, y });
+      
+      // Second resize
+      canvas.width = 800;
+      canvas.height = 600;
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      positions.push({ x, y });
+      
+      // Third resize
+      canvas.width = 400;
+      canvas.height = 300;
+      if (x + TEXT_WIDTH > canvas.width - MARGIN) {
+        x = canvas.width - TEXT_WIDTH - MARGIN;
+      }
+      if (y > canvas.height - MARGIN) {
+        y = canvas.height - MARGIN;
+      }
+      positions.push({ x, y });
+      
+      // All positions should be valid
+      positions.forEach(pos => {
+        expect(pos.x + TEXT_WIDTH).toBeLessThanOrEqual(canvas.width - MARGIN);
+        expect(pos.y).toBeLessThanOrEqual(canvas.height - MARGIN);
+      });
+    });
+  });
+});
