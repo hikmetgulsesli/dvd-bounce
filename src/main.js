@@ -1,7 +1,5 @@
-const canvas = document.getElementById('dvd-canvas');
-const ctx = canvas.getContext('2d');
-
-const COLORS = [
+// DVD Bounce - Core Logic (Testable)
+export const COLORS = [
   '#FF0000', // Red
   '#00FF00', // Green
   '#0000FF', // Blue
@@ -14,14 +12,61 @@ const COLORS = [
   '#FF0080'  // Pink
 ];
 
-let currentColor = COLORS[0];
+// State variables
+export let currentColor = COLORS[0];
 let x = 100;
 let y = 100;
 let vx = 3;
 let vy = 3;
 const margin = 10;
 
-function resizeCanvas() {
+// Canvas context (set by init)
+let ctx = null;
+let canvas = null;
+
+export function getRandomColor(exclude) {
+  const available = COLORS.filter((c) => c !== exclude);
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+export function changeColor() {
+  currentColor = getRandomColor(currentColor);
+  return currentColor;
+}
+
+export function getTextWidth() {
+  ctx.font = 'bold 80px "Space Grotesk", sans-serif';
+  return ctx.measureText('DVD').width;
+}
+
+export function getTextHeight() {
+  return 80;
+}
+
+export function getMargin() {
+  return margin;
+}
+
+export function getPosition() {
+  return { x, y, vx, vy };
+}
+
+export function setPosition(newX, newY) {
+  x = newX;
+  y = newY;
+}
+
+export function setVelocity(newVx, newVy) {
+  vx = newVx;
+  vy = newVy;
+}
+
+export function getCanvasDimensions() {
+  return { width: canvas.width, height: canvas.height };
+}
+
+export function resizeCanvas() {
+  if (!canvas || !ctx) return;
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
@@ -34,21 +79,8 @@ function resizeCanvas() {
   }
 }
 
-function getTextWidth() {
-  ctx.font = 'bold 80px "Space Grotesk", sans-serif';
-  return ctx.measureText('DVD').width;
-}
-
-function getTextHeight() {
-  return 80;
-}
-
-function getRandomColor(exclude) {
-  const available = COLORS.filter((c) => c !== exclude);
-  return available[Math.floor(Math.random() * available.length)];
-}
-
-function draw() {
+export function draw() {
+  if (!ctx) return;
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -65,7 +97,7 @@ function draw() {
   ctx.shadowBlur = 0;
 }
 
-function update() {
+export function update() {
   x += vx;
   y += vy;
 
@@ -91,23 +123,29 @@ function update() {
   }
 }
 
-function animate() {
+export function animate() {
   update();
   draw();
   requestAnimationFrame(animate);
 }
 
-// Handle spacebar press
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') {
-    e.preventDefault();
-    currentColor = getRandomColor(currentColor);
-  }
-});
+// Initialize function to be called from browser
+export function init() {
+  canvas = document.getElementById('dvd-canvas');
+  ctx = canvas.getContext('2d');
 
-// Handle window resize
-window.addEventListener('resize', resizeCanvas);
+  // Handle spacebar press
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      changeColor();
+    }
+  });
 
-// Initialize
-resizeCanvas();
-animate();
+  // Handle window resize
+  window.addEventListener('resize', resizeCanvas);
+
+  // Initialize
+  resizeCanvas();
+  animate();
+}
