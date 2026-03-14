@@ -1,8 +1,8 @@
 // Test suite for DVD Bounce animation
-// Tests the actual implementation from main.js
+// Tests the actual implementation from physics.js
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { COLORS, currentColor, getRandomColor, changeColor, animate, update, draw } from './main.js';
+import { COLORS, state, getCurrentColor, setCurrentColor, getRandomColor, update, keepInBounds } from './physics.js';
 
 // Mock canvas context
 const createMockContext = () => ({
@@ -35,14 +35,20 @@ beforeEach(() => {
     addEventListener: vi.fn()
   };
   global.requestAnimationFrame = vi.fn((cb) => cb());
+  
+  // Reset state
+  state.x = 100;
+  state.y = 100;
+  state.vx = 3;
+  state.vy = 3;
 });
 
 describe('Bouncing Animation Physics', () => {
   const MARGIN = 10;
 
   describe('AC1: Animation runs at 60fps via requestAnimationFrame', () => {
-    it('should have animate function that uses requestAnimationFrame', () => {
-      expect(typeof animate).toBe('function');
+    it('should have update function for animation loop', () => {
+      expect(typeof update).toBe('function');
     });
   });
 
@@ -69,26 +75,25 @@ describe('Bouncing Animation Physics', () => {
       expect(typeof update).toBe('function');
     });
 
-    it('should have draw function to render frame', () => {
-      expect(typeof draw).toBe('function');
+    it('should have keepInBounds function for resize handling', () => {
+      expect(typeof keepInBounds).toBe('function');
     });
   });
 });
 
 describe('Spacebar Color Change Interaction', () => {
   describe('AC1: Spacebar press triggers color change', () => {
-    it('should have a keydown event listener in main.js', () => {
-      // Check that document.addEventListener was called with keydown
-      expect(typeof document.addEventListener).toBe('function');
+    it('should have getCurrentColor function', () => {
+      expect(typeof getCurrentColor).toBe('function');
     });
 
-    it('should have changeColor function to update color', () => {
-      expect(typeof changeColor).toBe('function');
+    it('should have setCurrentColor function', () => {
+      expect(typeof setCurrentColor).toBe('function');
     });
 
-    it('changeColor should be callable and return a color', () => {
-      const newColor = changeColor();
-      expect(COLORS).toContain(newColor);
+    it('setCurrentColor should update the color', () => {
+      setCurrentColor(COLORS[1]);
+      expect(getCurrentColor()).toBe(COLORS[1]);
     });
   });
 
@@ -175,14 +180,13 @@ describe('Spacebar Color Change Interaction', () => {
       expect(COLORS[0]).toBe('#FF0000');
     });
 
-    it('should have currentColor exported', () => {
-      expect(currentColor).toBeDefined();
+    it('should have state.color exported', () => {
+      expect(state.color).toBeDefined();
     });
 
-    it('should have changeColor function that updates currentColor', () => {
-      changeColor();
-      // currentColor should have changed
-      expect(typeof currentColor).toBe('string');
+    it('should have getCurrentColor function that returns current color', () => {
+      setCurrentColor(COLORS[2]);
+      expect(getCurrentColor()).toBe(COLORS[2]);
     });
   });
 });

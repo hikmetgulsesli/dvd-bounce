@@ -39,6 +39,7 @@ export function getCurrentColor() {
 
 export function setCurrentColor(color) {
   currentColor = color;
+  state.color = color;
 }
 
 export function getRandomColor(exclude) {
