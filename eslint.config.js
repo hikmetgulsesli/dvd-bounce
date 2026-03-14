@@ -25,4 +25,17 @@ export default [
       },
     },
   },
+  {
+    files: ['**/*.test.js'],
+    languageOptions: {
+      globals: {
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        global: 'readonly',
+      },
+    },
+  },
 ];
