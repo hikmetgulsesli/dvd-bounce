@@ -24,6 +24,156 @@
 </head>
 <body>
   <canvas id="dvd-canvas"></canvas>
-  <script type="module" src="index.js"></script>
+  <script>
+let canvas = null;
+let ctx = null;
+let canvasOverride = null;
+
+function getCanvas() {
+  if (canvasOverride) {
+    return { canvas: canvasOverride, ctx: canvasOverride.getContext('2d') };
+  }
+  if (!canvas) {
+    canvas = document.getElementById('dvd-canvas');
+    ctx = canvas.getContext('2d');
+  }
+  return { canvas, ctx };
+}
+
+function setCanvasOverride(mockCanvas) {
+  canvasOverride = mockCanvas;
+}
+
+function clearCanvasOverride() {
+  canvasOverride = null;
+}
+
+const COLORS = [
+  '#FF0000', // Red
+  '#00FF00', // Green
+  '#0000FF', // Blue
+  '#FFFF00', // Yellow
+  '#FF00FF', // Magenta
+  '#00FFFF', // Cyan
+  '#FF8000', // Orange
+  '#8000FF', // Purple
+  '#00FF80', // Spring Green
+  '#FF0080'  // Pink
+];
+
+let currentColor = COLORS[0];
+let x = 100;
+let y = 100;
+let vx = 3;
+let vy = 3;
+const margin = 10;
+
+function resizeCanvas() {
+  const { canvas: c } = getCanvas();
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+
+  // Keep logo in bounds after resize
+  if (x + getTextWidth() > c.width - margin) {
+    x = c.width - getTextWidth() - margin;
+  }
+  if (y > c.height - margin) {
+    y = c.height - margin;
+  }
+}
+
+function getTextWidth() {
+  const { ctx: context } = getCanvas();
+  context.font = 'bold 80px "Space Grotesk", sans-serif';
+  return context.measureText('DVD').width;
+}
+
+function getTextHeight() {
+  return 80;
+}
+
+function getRandomColor(exclude) {
+  const available = COLORS.filter((c) => c !== exclude);
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+function getState() {
+  return { x, y, vx, vy, currentColor, margin, canvas: getCanvas().canvas };
+}
+
+function setState(newState) {
+  if (newState.x !== undefined) x = newState.x;
+  if (newState.y !== undefined) y = newState.y;
+  if (newState.vx !== undefined) vx = newState.vx;
+  if (newState.vy !== undefined) vy = newState.vy;
+  if (newState.currentColor !== undefined) currentColor = newState.currentColor;
+}
+
+function draw() {
+  const { canvas: c, ctx: context } = getCanvas();
+  context.fillStyle = '#000000';
+  context.fillRect(0, 0, c.width, c.height);
+
+  // Draw DVD text with glow
+  context.font = 'bold 80px "Space Grotesk", sans-serif';
+
+  // Glow effect
+  context.shadowColor = currentColor;
+  context.shadowBlur = 25;
+  context.fillStyle = currentColor;
+  context.fillText('DVD', x, y + getTextHeight());
+
+  // Reset shadow
+  context.shadowBlur = 0;
+}
+
+function update() {
+  const { canvas: c } = getCanvas();
+  const textWidth = getTextWidth();
+  const textHeight = getTextHeight();
+
+  x += vx;
+  y += vy;
+
+  // Bounce off edges
+  if (x <= margin) {
+    x = margin;
+    vx = Math.abs(vx);
+  }
+  if (x + textWidth >= c.width - margin) {
+    x = c.width - textWidth - margin;
+    vx = -Math.abs(vx);
+  }
+  if (y <= textHeight) {
+    y = textHeight;
+    vy = Math.abs(vy);
+  }
+  if (y >= c.height - margin) {
+    y = c.height - margin;
+    vy = -Math.abs(vy);
+  }
+}
+
+function animate() {
+  update();
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// Handle spacebar press
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    currentColor = getRandomColor(currentColor);
+  }
+});
+
+// Handle window resize
+window.addEventListener('resize', resizeCanvas);
+
+// Initialize
+resizeCanvas();
+animate();
+</script>
 </body>
 </html>
