@@ -1,5 +1,25 @@
-const canvas = document.getElementById('dvd-canvas');
-const ctx = canvas.getContext('2d');
+let canvas = null;
+let ctx = null;
+let canvasOverride = null;
+
+function getCanvas() {
+  if (canvasOverride) {
+    return { canvas: canvasOverride, ctx: canvasOverride.getContext('2d') };
+  }
+  if (!canvas) {
+    canvas = document.getElementById('dvd-canvas');
+    ctx = canvas.getContext('2d');
+  }
+  return { canvas, ctx };
+}
+
+function setCanvasOverride(mockCanvas) {
+  canvasOverride = mockCanvas;
+}
+
+function clearCanvasOverride() {
+  canvasOverride = null;
+}
 
 const COLORS = [
   '#FF0000', // Red
@@ -22,21 +42,23 @@ let vy = 3;
 const margin = 10;
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const { canvas: c } = getCanvas();
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
 
   // Keep logo in bounds after resize
-  if (x + getTextWidth() > canvas.width - margin) {
-    x = canvas.width - getTextWidth() - margin;
+  if (x + getTextWidth() > c.width - margin) {
+    x = c.width - getTextWidth() - margin;
   }
-  if (y > canvas.height - margin) {
-    y = canvas.height - margin;
+  if (y > c.height - margin) {
+    y = c.height - margin;
   }
 }
 
 function getTextWidth() {
-  ctx.font = 'bold 80px "Space Grotesk", sans-serif';
-  return ctx.measureText('DVD').width;
+  const { ctx: context } = getCanvas();
+  context.font = 'bold 80px "Space Grotesk", sans-serif';
+  return context.measureText('DVD').width;
 }
 
 function getTextHeight() {
@@ -48,45 +70,59 @@ function getRandomColor(exclude) {
   return available[Math.floor(Math.random() * available.length)];
 }
 
+function getState() {
+  return { x, y, vx, vy, currentColor, margin, canvas: getCanvas().canvas };
+}
+
+function setState(newState) {
+  if (newState.x !== undefined) x = newState.x;
+  if (newState.y !== undefined) y = newState.y;
+  if (newState.vx !== undefined) vx = newState.vx;
+  if (newState.vy !== undefined) vy = newState.vy;
+  if (newState.currentColor !== undefined) currentColor = newState.currentColor;
+}
+
 function draw() {
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const { canvas: c, ctx: context } = getCanvas();
+  context.fillStyle = '#000000';
+  context.fillRect(0, 0, c.width, c.height);
 
   // Draw DVD text with glow
-  ctx.font = 'bold 80px "Space Grotesk", sans-serif';
+  context.font = 'bold 80px "Space Grotesk", sans-serif';
 
   // Glow effect
-  ctx.shadowColor = currentColor;
-  ctx.shadowBlur = 25;
-  ctx.fillStyle = currentColor;
-  ctx.fillText('DVD', x, y + getTextHeight());
+  context.shadowColor = currentColor;
+  context.shadowBlur = 25;
+  context.fillStyle = currentColor;
+  context.fillText('DVD', x, y + getTextHeight());
 
   // Reset shadow
-  ctx.shadowBlur = 0;
+  context.shadowBlur = 0;
 }
 
 function update() {
-  x += vx;
-  y += vy;
-
+  const { canvas: c } = getCanvas();
   const textWidth = getTextWidth();
   const textHeight = getTextHeight();
+
+  x += vx;
+  y += vy;
 
   // Bounce off edges
   if (x <= margin) {
     x = margin;
     vx = Math.abs(vx);
   }
-  if (x + textWidth >= canvas.width - margin) {
-    x = canvas.width - textWidth - margin;
+  if (x + textWidth >= c.width - margin) {
+    x = c.width - textWidth - margin;
     vx = -Math.abs(vx);
   }
   if (y <= textHeight) {
     y = textHeight;
     vy = Math.abs(vy);
   }
-  if (y >= canvas.height - margin) {
-    y = canvas.height - margin;
+  if (y >= c.height - margin) {
+    y = c.height - margin;
     vy = -Math.abs(vy);
   }
 }
@@ -111,3 +147,6 @@ window.addEventListener('resize', resizeCanvas);
 // Initialize
 resizeCanvas();
 animate();
+
+// Export for testing
+export { update, resizeCanvas, getRandomColor, getTextWidth, getTextHeight, getState, setState, COLORS, getCanvas, setCanvasOverride, clearCanvasOverride };
