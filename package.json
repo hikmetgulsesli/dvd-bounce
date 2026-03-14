@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,9 @@
   "homepage": "https://github.com/hikmetgulsesli/dvd-bounce#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.0.3"
+    "@vitest/ui": "^4.1.0",
+    "eslint": "^10.0.3",
+    "jsdom": "^28.1.0",
+    "vitest": "^4.1.0"
   }
 }

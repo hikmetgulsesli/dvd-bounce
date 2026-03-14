@@ -8,6 +8,20 @@ export default [
         window: 'readonly',
         document: 'readonly',
         requestAnimationFrame: 'readonly',
+        global: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['**/*.test.js'],
+    languageOptions: {
+      globals: {
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        global: 'readonly',
       },
     },
   },
