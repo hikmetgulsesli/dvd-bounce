@@ -442,13 +442,14 @@ describe('Window Resize Handling', () => {
 
   describe('AC2: Logo stays within canvas bounds after resize', () => {
     it('should reposition logo if outside right boundary after resize', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       // First set position outside new bounds
       setState({ x: 700, y: 100 });
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 400, 
         innerHeight: 600,
@@ -463,12 +464,13 @@ describe('Window Resize Handling', () => {
     });
 
     it('should reposition logo if outside bottom boundary after resize', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       setState({ x: 100, y: 500 });
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 800, 
         innerHeight: 300,
@@ -482,14 +484,15 @@ describe('Window Resize Handling', () => {
     });
 
     it('should keep logo position if still within bounds after resize', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       setState({ x: 100, y: 100 });
       const originalX = 100;
       const originalY = 100;
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 1024, 
         innerHeight: 768,
@@ -504,12 +507,13 @@ describe('Window Resize Handling', () => {
     });
 
     it('should handle simultaneous x and y boundary violations', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       setState({ x: 700, y: 500 });
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 400, 
         innerHeight: 300,
@@ -526,14 +530,15 @@ describe('Window Resize Handling', () => {
 
   describe('AC3: Animation continues without interruption', () => {
     it('should maintain velocity after resize', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       setState({ vx: 3, vy: 3 });
       const originalVx = 3;
       const originalVy = 3;
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 1024, 
         innerHeight: 768,
@@ -548,12 +553,13 @@ describe('Window Resize Handling', () => {
     });
 
     it('should maintain animation state after resize', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       setState({ x: 100, y: 100, vx: 3, vy: 3 });
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 1024, 
         innerHeight: 768,
@@ -587,12 +593,13 @@ describe('Window Resize Handling', () => {
 
   describe('Edge cases for resize handling', () => {
     it('should handle extreme small window sizes', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, getState, setCanvasOverride } = await import('./main.js');
       
       setState({ x: 700, y: 500 });
       
       const testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
+      
       global.window = { 
         innerWidth: 200, 
         innerHeight: 150,
@@ -607,29 +614,29 @@ describe('Window Resize Handling', () => {
     });
 
     it('should handle multiple rapid resizes', async () => {
-      const { resizeCanvas, setState, getState } = await import('./main.js');
+      const { resizeCanvas, setState, setCanvasOverride } = await import('./main.js');
       
       setState({ x: 100, y: 100 });
       
-      let testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
-      
       // First resize
+      let testCanvas = createMockCanvas(800, 600);
+      setCanvasOverride(testCanvas);
       global.window = { innerWidth: 600, innerHeight: 400, addEventListener: vi.fn() };
       resizeCanvas();
       
       // Second resize
       testCanvas = createMockCanvas(600, 400);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
       global.window = { innerWidth: 800, innerHeight: 600, addEventListener: vi.fn() };
       resizeCanvas();
       
       // Third resize - push outside bounds
       testCanvas = createMockCanvas(800, 600);
-      global.document.getElementById = vi.fn(() => testCanvas);
+      setCanvasOverride(testCanvas);
       global.window = { innerWidth: 400, innerHeight: 300, addEventListener: vi.fn() };
       resizeCanvas();
       
+      const { getState } = await import('./main.js');
       const state = getState();
       expect(state.x + 120).toBeLessThanOrEqual(400 - 10);
       expect(state.y).toBeLessThanOrEqual(300 - 10);
@@ -638,10 +645,31 @@ describe('Window Resize Handling', () => {
 });
 
 describe('Color Randomization', () => {
+  // Mock canvas context
+  const createMockContext = () => ({
+    fillStyle: '',
+    fillRect: vi.fn(),
+    font: '',
+    fillText: vi.fn(),
+    shadowColor: '',
+    shadowBlur: 0,
+    measureText: vi.fn(() => ({ width: 120 }))
+  });
+
+  // Mock canvas element
+  const createMockCanvas = (width = 800, height = 600) => ({
+    width,
+    height,
+    getContext: vi.fn(() => createMockContext())
+  });
+
   beforeEach(() => {
     vi.resetModules();
+    
+    const testCanvas = createMockCanvas(800, 600);
+    
     global.document = {
-      getElementById: vi.fn(() => createMockCanvas(800, 600)),
+      getElementById: vi.fn(() => testCanvas),
       addEventListener: vi.fn()
     };
     global.window = {
@@ -649,6 +677,10 @@ describe('Color Randomization', () => {
       innerHeight: 600,
       addEventListener: vi.fn()
     };
+    
+    return import('./main.js').then(({ setCanvasOverride }) => {
+      setCanvasOverride(testCanvas);
+    });
   });
 
   it('should have 10 colors in palette', async () => {
