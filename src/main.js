@@ -1,7 +1,13 @@
-import { state, getTextHeight, getCurrentColor, setCurrentColor, getRandomColor, update, keepInBounds } from './physics.js';
+// DVD Bounce - Main Entry Point
+import { state, getTextHeight, getCurrentColor, setCurrentColor, getRandomColor, update, keepInBounds, COLORS } from './physics.js';
 
 const canvas = document.getElementById('dvd-canvas');
 const ctx = canvas.getContext('2d');
+
+function changeColor() {
+  const newColor = getRandomColor(getCurrentColor());
+  setCurrentColor(newColor);
+}
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -17,10 +23,13 @@ function draw() {
   // Draw DVD text with glow
   ctx.font = 'bold 80px "Space Grotesk", sans-serif';
 
+  // Get current color
+  const color = getCurrentColor();
+  
   // Glow effect
-  ctx.shadowColor = getCurrentColor();
+  ctx.shadowColor = color;
   ctx.shadowBlur = 25;
-  ctx.fillStyle = getCurrentColor();
+  ctx.fillStyle = color;
   ctx.fillText('DVD', state.x, state.y + getTextHeight());
 
   // Reset shadow
@@ -37,7 +46,7 @@ function animate() {
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault();
-    setCurrentColor(getRandomColor(getCurrentColor()));
+    changeColor();
   }
 });
 
@@ -45,5 +54,6 @@ document.addEventListener('keydown', (e) => {
 window.addEventListener('resize', resizeCanvas);
 
 // Initialize
+setCurrentColor(COLORS[0]);
 resizeCanvas();
 animate();
